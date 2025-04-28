@@ -1,0 +1,2 @@
+yfinance==0.2.56
+psycopg2==2.9.10
