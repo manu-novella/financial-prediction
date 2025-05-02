@@ -9,11 +9,30 @@ from db import get_db_params
 
 
 def get_tickers():
-    """Read from config assets to extract."""
+    """Read from DB companies to extract."""
 
-    print('Reading assets whose data extract...')
-    ticker_symbols = ["AAPL", "GOOG", "MSFT", "AMZN", "META"] #TODO read from DB
-    return ticker_symbols
+    print('Reading companies whose data extract...')
+
+    params = get_db_params()
+    companies_tbl = params['companies']
+    db_conn_params = params['db_conn']
+
+    select_query = f"SELECT ticker FROM {companies_tbl}"
+
+    try:
+        with psycopg2.connect(**db_conn_params) as conn:
+            with conn.cursor() as cur:
+                cur.execute(select_query)
+                conn.commit()
+                records = cur.fetchall()
+    except psycopg2.Error as e:
+        print(f"Database error: {e}")
+
+    tickers = []
+    for record in records:
+        tickers.append(record[0])
+    
+    return tickers
 
 
 def get_extraction_period(): #Must return None if same-day data already extracted
@@ -24,14 +43,14 @@ def get_extraction_period(): #Must return None if same-day data already extracte
     return period
 
 
-def extract_asset_price_data(ticker_symbols, period="1d"):
+def extract_asset_price_data(tickers, period="1d"):
     """Download stock data for multiple tickers."""
 
     print('Downloading asset prices...')
 
     all_data = []
 
-    for ticker in ticker_symbols:
+    for ticker in tickers:
         print(f"Fetching data for {ticker}...")
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)
@@ -106,7 +125,6 @@ def run_etl():
         return
     
     tickers = get_tickers()
-
     asset_data = extract_asset_price_data(tickers, period=period)
 
     if asset_data.empty:

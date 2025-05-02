@@ -14,15 +14,11 @@ def get_db_params():
         "password": os.getenv("DB_PASSWORD")
     }
 
-    ASSETS_PRICE_TABLE_NAME = os.getenv("ASSETS_PRICE_TABLE")
-    COMPANIES_TABLE = os.getenv("COMPANIES_TABLE")
-    SENTIMENT_SOURCES_TABLE = os.getenv("SENTIMENT_SOURCES_TABLE")
-
-
     params = {"db_conn": DB_CONN_PARAMS,
-              "assets_price": ASSETS_PRICE_TABLE_NAME,
-              "companies": COMPANIES_TABLE,
-              "sentiment_sources": SENTIMENT_SOURCES_TABLE
+              "assets_price": os.getenv("ASSETS_PRICE_TABLE"),
+              "companies": os.getenv("COMPANIES_TABLE"),
+              "sentiment_sources": os.getenv("SENTIMENT_SOURCES_TABLE"),
+              "sentiment_analysis": os.getenv("SENTIMENT_ANALYSIS_TABLE")
     }
 
     return params

@@ -4,3 +4,5 @@ pandas==2.2.3
 feedparser==6.0.11
 spacy==3.8.5
 RapidFuzz==3.13.0
+tensorflow==2.19.0
+torch==2.7.0
