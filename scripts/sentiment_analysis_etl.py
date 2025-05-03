@@ -20,7 +20,7 @@ def get_sources():
     select_query = f"""SELECT s.content_id, s.published_date, s.title, c.name
                         FROM {sources_tbl} s
                         LEFT JOIN {companies_tbl} c
-                        ON s.ticker = c.ticker
+                        ON s.ticker = c.ticker;
                     """
     #TODO filter by published_date
     #TODO handle pseudonyms
@@ -89,7 +89,7 @@ def store_results(rows):
         print("No new data to insert.")
         return
     
-    print('Loading extracted data into DB...')
+    print('Loading sentiment analysis data into DB...')
     
     params = get_db_params()
     sentiment_analysis_tbl = params['sentiment_analysis']

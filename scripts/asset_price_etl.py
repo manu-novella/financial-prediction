@@ -39,7 +39,9 @@ def get_extraction_period(): #Must return None if same-day data already extracte
     """Determine from what period data must be extracted."""
 
     print('Determining period for data extraction...')
-    period = '1d' #TODO read from config file
+
+    period = '1d' #TODO read from config file and pass as parameter
+
     return period
 
 

@@ -6,3 +6,8 @@ spacy==3.8.5
 RapidFuzz==3.13.0
 tensorflow==2.19.0
 torch==2.7.0
+pandas_ta==0.3.14b0
+numpy==1.26.4
+dotenv==0.9.9
+transformers==4.51.3
+tf_keras==2.19.0

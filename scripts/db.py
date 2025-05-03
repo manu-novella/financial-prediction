@@ -18,7 +18,8 @@ def get_db_params():
               "assets_price": os.getenv("ASSETS_PRICE_TABLE"),
               "companies": os.getenv("COMPANIES_TABLE"),
               "sentiment_sources": os.getenv("SENTIMENT_SOURCES_TABLE"),
-              "sentiment_analysis": os.getenv("SENTIMENT_ANALYSIS_TABLE")
+              "sentiment_analysis": os.getenv("SENTIMENT_ANALYSIS_TABLE"),
+              "technical_analysis": os.getenv("TECHNICAL_ANALYSIS_TABLE")
     }
 
     return params
