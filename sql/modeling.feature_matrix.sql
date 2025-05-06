@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS modeling.feature_matrix
     daily_return real,
     volume_sma_10 real,
     sentiment_score real,
-    sentiment_volume integer,
     next_day_return real,
     next_day_up boolean,
     CONSTRAINT feature_matrix_pkey PRIMARY KEY (id),

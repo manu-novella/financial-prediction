@@ -8,17 +8,17 @@ from db import get_db_params
 
 
 def get_asset_data():
-    """Retrieve asset trading data from DB."""
+    '''Retrieve asset trading data from DB.'''
 
-    print("Extracting asset data from database...")
+    print('Extracting asset data from database...')
 
-    params = get_db_params()
-    asset_price_tbl = params['assets_price']
-    db_conn_params = params['db_conn']
+    params =            get_db_params()
+    asset_price_tbl =   params['assets_price']
+    db_conn_params =    params['db_conn']
 
-    select_query = f"""SELECT price_id, ticker_symbol, date, open, close, high, low, volume
-	                    FROM {asset_price_tbl};
-                    """
+    columns = ['price_id', 'ticker', 'date', 'open', 'close', 'high', 'low', 'volume']
+
+    select_query = f'''SELECT {", ".join(columns)} FROM {asset_price_tbl};'''
     
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -27,43 +27,42 @@ def get_asset_data():
                 conn.commit()
                 records = cur.fetchall()
     except psycopg2.Error as e:
-        print(f"Database error: {e}")
+        print(f'Database error: {e}')
 
-    columns = ['price_id', 'ticker_symbol', 'date', 'open', 'close', 'high', 'low', 'volume']
     asset_prices_df = pd.DataFrame(records, columns=columns)
 
     return asset_prices_df
 
 
 def compute_ta_metrics(asset_df, start_time):
-    """Compute technical analysis metrics on past data."""
+    '''Compute technical analysis metrics on past data.'''
 
     print('Computing technical analysis metrics...')
 
     computed_rows = []
 
-    for ticker, group in asset_df.groupby('ticker_symbol'):
-        group = group.sort_values("date").copy()
+    for ticker, group in asset_df.groupby('ticker'):
+        group = group.sort_values('date').copy()
         
-        group["sma_10"] = group["close"].rolling(10).mean()
-        group["sma_20"] = group["close"].rolling(20).mean()
-        group["ema_10"] = group["close"].ewm(span=10).mean()
-        group["ema_20"] = group["close"].ewm(span=20).mean()
-        group["rsi_14"] = ta.rsi(group["close"], length=14)
-        group["daily_return"] = group["close"].pct_change()
-        group["volume_sma_10"] = group["volume"].rolling(10).mean()
+        group['sma_10'] =           group['close'].rolling(10).mean()
+        group['sma_20'] =           group['close'].rolling(20).mean()
+        group['ema_10'] =           group['close'].ewm(span=10).mean()
+        group['ema_20'] =           group['close'].ewm(span=20).mean()
+        group['rsi_14'] =           ta.rsi(group['close'], length=14)
+        group['daily_return'] =     group['close'].pct_change()
+        group['volume_sma_10'] =    group['volume'].rolling(10).mean()
 
         #Collect id and metrics
         for _, row in group.dropna().iterrows():
             computed_rows.append([
-                row["price_id"],
-                row["sma_10"],
-                row["sma_20"],
-                row["ema_10"],
-                row["ema_20"],
-                row["rsi_14"],
-                row["daily_return"],
-                row["volume_sma_10"],
+                row['price_id'],
+                row['sma_10'],
+                row['sma_20'],
+                row['ema_10'],
+                row['ema_20'],
+                row['rsi_14'],
+                row['daily_return'],
+                row['volume_sma_10'],
                 start_time
             ])
 
@@ -75,15 +74,15 @@ def compute_ta_metrics(asset_df, start_time):
 
 
 def transform_data(df):
-    """Transform raw DataFrame into list of tuples for insertion."""
+    '''Transform raw DataFrame into list of tuples for insertion.'''
 
-    print("Preparing data to save...")
+    print('Preparing data to save...')
 
     rows = [
         (
-            row["asset_price_id"], row["sma_10"], row["sma_20"],
-            row["ema_10"], row["ema_20"], row["rsi_14"],
-            row["daily_return"], row["volume_sma_10"], row["computed_at"]
+            row['asset_price_id'], row['sma_10'], row['sma_20'],
+            row['ema_10'], row['ema_20'], row['rsi_14'],
+            row['daily_return'], row['volume_sma_10'], row['computed_at']
         )
         for index, row in df.iterrows()
     ]
@@ -92,26 +91,25 @@ def transform_data(df):
 
 
 def store_results(rows):
-    """Insert rows into the database using bulk insert."""
+    '''Insert rows into the database using bulk insert.'''
 
     if not rows:
-        print("No new data to insert.")
+        print('No new data to insert.')
         return
     
-    print('Loading technical analysis data into DB...')
+    print('Loading technical analysis results into database...')
     
-    params = get_db_params()
-    technical_analysis_tbl = params['technical_analysis']
-    db_conn_params = params['db_conn']
+    params =                    get_db_params()
+    technical_analysis_tbl =    params['technical_analysis']
+    db_conn_params =            params['db_conn']
 
-    insert_query = f"""
-        INSERT INTO {technical_analysis_tbl} (
-            asset_price_id, sma_10, sma_20, ema_10, ema_20,
-            rsi_14, daily_return, volume_sma_10, computed_at
-        )
-        VALUES %s
-        ON CONFLICT (asset_price_id) DO NOTHING;
-    """
+    insert_query = f'''INSERT INTO {technical_analysis_tbl} (
+                        asset_price_id, sma_10, sma_20, ema_10, ema_20,
+                        rsi_14, daily_return, volume_sma_10, computed_at
+                        )
+                        VALUES %s
+                        ON CONFLICT (asset_price_id) DO NOTHING;
+    '''
 
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -119,15 +117,15 @@ def store_results(rows):
                 execute_values(cur, insert_query, rows)
                 conn.commit()
     except psycopg2.Error as e:
-        print(f"Database error: {e}")
+        print(f'Database error: {e}')
         return
         
-    print(f"Insertion successful.")
+    print(f'Insertion successful.')
 
 
 def run_etl():
     start_time = datetime.now()
-    print(f"Starting Technical Analysis ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f'Starting Technical Analysis ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
 
     #Extract
     asset_df = get_asset_data()
@@ -139,8 +137,8 @@ def run_etl():
     #Load
     store_results(rows)
 
-    print(f"ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f'ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_etl()

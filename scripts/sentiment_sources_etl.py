@@ -11,9 +11,9 @@ from db import get_db_params
 
 
 def fetch_rss_news(url):
-    """Fetch news articles from an RSS feed."""
+    '''Fetch news articles from an RSS feed.'''
 
-    print("Fetching RSS news...")
+    print('Fetching RSS news...')
 
     feed = feedparser.parse(url)
     articles = []
@@ -22,22 +22,22 @@ def fetch_rss_news(url):
             'title': entry.title,
             'link': entry.link,
             'published': entry.published,
-            'summary': entry.summary if 'summary' in entry else ""
+            'summary': entry.summary if 'summary' in entry else ''
         })
 
     return articles
 
 
 def build_org_ticker_dict():
-    """Read companies data from DB and build a dictionary to map their tickers."""
+    '''Read companies data from DB and build a dictionary to map their tickers.'''
 
-    print("Extracting relevant companies from database...")
+    print('Extracting relevant companies from database...')
 
-    params = get_db_params()
-    companies_tbl = params['companies']
-    db_conn_params = params['db_conn']
+    params =            get_db_params()
+    companies_tbl =     params['companies']
+    db_conn_params =    params['db_conn']
 
-    select_query = f"SELECT name, pseudonym, ticker FROM {companies_tbl}"
+    select_query = f'SELECT name, pseudonym, ticker FROM {companies_tbl}'
 
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -46,7 +46,7 @@ def build_org_ticker_dict():
                 conn.commit()
                 records = cur.fetchall()
     except psycopg2.Error as e:
-        print(f"Database error: {e}")
+        print(f'Database error: {e}')
 
     org_to_ticker = {}
 
@@ -78,7 +78,7 @@ def extract_orgs(text, relevant_orgs, nlp_model):
 
 
 def fuzzy_match_org(org, relevant_orgs, threshold=85):
-    """Match org string scraped from text with set of orgs in DB."""
+    '''Match org string scraped from text with set of orgs in DB.'''
     
     match, score, _ = process.extractOne(org.title(), relevant_orgs, scorer=fuzz.token_sort_ratio, processor=str.lower)
     if score >= threshold:
@@ -88,7 +88,7 @@ def fuzzy_match_org(org, relevant_orgs, threshold=85):
 def build_asset_mentions_df(articles, ticker_dict, nlp_model, url, scraping_timestamp):
     '''Iterate the scraped articles and return data about the relevant mentioned assets.'''
 
-    print("Extracting mentions of assets in news...")
+    print('Extracting mentions of assets in news...')
 
     columns = ['source', 'published_date', 'title', 'body', 'url', 'scraped_at', 'ticker']
     sentiment_sources = pd.DataFrame(columns=columns)
@@ -117,9 +117,9 @@ def build_asset_mentions_df(articles, ticker_dict, nlp_model, url, scraping_time
 
 
 def transform_data(df):
-    """Transform raw DataFrame into list of tuples for insertion."""
+    '''Transform raw DataFrame into list of tuples for insertion.'''
 
-    print("Preparing data to save...")
+    print('Preparing data to save...')
 
     rows = [
         (row['source'], row['published_date'], row['title'], row['body'], row['url'], row['scraped_at'], row['ticker'])
@@ -130,24 +130,24 @@ def transform_data(df):
 
 
 def load_data(rows):
-    """Insert rows into the database using bulk insert."""
+    '''Insert rows into the database using bulk insert.'''
 
     if not rows:
-        print("No new data to insert.")
+        print('No new data to insert.')
         return
     
-    print('Loading extracted data into DB...')
+    print('Loading extracted data into database...')
     
-    params = get_db_params()
+    params =                get_db_params()
     sentiment_sources_tbl = params['sentiment_sources']
-    db_conn_params = params['db_conn']
+    db_conn_params =        params['db_conn']
 
     #Same article several times is ok, but once per ticker
-    insert_query = f"""
-        INSERT INTO {sentiment_sources_tbl} (source, published_date, title, body, url, scraped_at, ticker)
-        VALUES %s
-        ON CONFLICT (published_date, title, ticker) DO NOTHING;
-    """
+    insert_query = f'''
+                    INSERT INTO {sentiment_sources_tbl} (source, published_date, title, body, url, scraped_at, ticker)
+                    VALUES %s
+                    ON CONFLICT (published_date, title, ticker) DO NOTHING;
+    '''
         
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -155,31 +155,31 @@ def load_data(rows):
                 execute_values(cur, insert_query, rows)
                 conn.commit()
     except psycopg2.Error as e:
-        print(f"Database error: {e}")
+        print(f'Database error: {e}')
         return
         
-    print(f"Insertion successful.")
+    print(f'Insertion successful.')
 
 
 def run_etl():
     start_time = datetime.now()
-    print(f"Starting News Sentiment ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f'Starting News Sentiment ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
 
     #Extract
-    rss_url = "https://finance.yahoo.com/rss/topstories"
+    rss_url = 'https://finance.yahoo.com/rss/topstories'
     articles = fetch_rss_news(rss_url)
 
     #Transform
     org_to_ticker_dict = build_org_ticker_dict()
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load('en_core_web_sm')
     sources_df = build_asset_mentions_df(articles, org_to_ticker_dict, nlp, rss_url, start_time)
     rows = transform_data(sources_df)
 
     #Load
     load_data(rows)
 
-    print(f"ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f'ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_etl()

@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS inputs.asset_prices
 (
     price_id serial NOT NULL,
-    ticker_symbol character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    ticker character varying(20) COLLATE pg_catalog."default" NOT NULL,
     date date NOT NULL,
     open numeric(20,6),
     close numeric(20,6),
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS inputs.asset_prices
     low numeric(20,6),
     volume bigint,
     CONSTRAINT asset_prices_pkey PRIMARY KEY (price_id),
-    CONSTRAINT asset_prices_ticker_symbol_date_key UNIQUE (ticker_symbol, date)
+    CONSTRAINT asset_prices_ticker_date_key UNIQUE (ticker, date)
 )
 
 TABLESPACE pg_default;
