@@ -10,15 +10,15 @@ from db import get_db_params
 
 
 def get_tickers():
-    '''Read from DB companies to extract.'''
+    '''Read from DB assets to extract.'''
 
-    print('Reading companies whose data extract...')
+    print('Reading assets whose data extract...')
 
     params = get_db_params()
-    companies_tbl = params['companies']
+    assets_tbl = params['assets']
     db_conn_params = params['db_conn']
 
-    select_query = f'SELECT ticker FROM {companies_tbl}'
+    select_query = f'SELECT ticker FROM {assets_tbl}'
 
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -27,7 +27,7 @@ def get_tickers():
                 conn.commit()
                 records = cur.fetchall()
     except psycopg2.Error as e:
-        print(f'atabase error: {e}')
+        print(f'Database error: {e}')
 
     tickers = []
     for record in records:
@@ -58,7 +58,7 @@ def extract_asset_price_data(tickers, period='1d'):
     for ticker in tickers:
         print(f'Fetching data for {ticker}...')
         stock = yf.Ticker(ticker, session=session)
-        hist = stock.history(period=period)
+        hist = stock.history(period='5y')
 
         if hist.empty:
             continue
@@ -101,10 +101,9 @@ def load_data(rows):
     assets_price_tbl = params['assets_price']
     db_conn_params = params['db_conn']
 
-    insert_query = f'''
-        INSERT INTO {assets_price_tbl} (ticker, date, open, close, high, low, volume)
-        VALUES %s
-        ON CONFLICT (ticker, date) DO NOTHING;
+    insert_query = f'''INSERT INTO {assets_price_tbl} (ticker, date, open, close, high, low, volume)
+                        VALUES %s
+                        ON CONFLICT (ticker, date) DO NOTHING;
     '''
 
     try:

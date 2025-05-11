@@ -12,3 +12,5 @@ dotenv==0.9.9
 transformers==4.51.3
 tf_keras==2.19.0
 curl_cffi==0.10.0
+xgboost==3.0.0
+scikit-learn==1.6.1

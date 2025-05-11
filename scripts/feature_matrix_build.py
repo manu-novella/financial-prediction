@@ -20,20 +20,19 @@ def get_data():
 
     prices_columns = ['a.price_id', 'a.ticker', 'a.date', 'a.open', 'a.close', 'a.high', 'a.low', 'a.volume',
                       't.sma_10', 't.sma_20', 't.ema_10', 't.ema_20', 't.rsi_14', 't.daily_return', 't.volume_sma_10'
-                      ]
+    ]
     sentiment_columns = ['a.source_id', 'a.sentiment_score', 'a.score_confidence', 's.published_date', 's.ticker']
 
-    prices_query = f'''SELECT a.price_id, a.ticker, a.date, a.open, a.close, a.high, a.low, a.volume,
-                        t.sma_10, t.sma_20, t.ema_10, t.ema_20, t.rsi_14, t.daily_return, t.volume_sma_10
+    prices_query = f'''SELECT {", ".join(prices_columns)}
                         FROM {asset_price_tbl} a
                         LEFT JOIN {technical_analysis_tbl} t
                         ON a.price_id = t.asset_price_id
                         WHERE t.asset_price_id IS NOT NULL; --technical metrics have been computed
     '''
     sentiment_query = f'''SELECT {", ".join(sentiment_columns)}
-                        FROM {sentiment_analysis_tbl} a
-                        LEFT JOIN {sentiment_sources_tbl} s
-                        ON a.source_id = s.content_id;
+                            FROM {sentiment_analysis_tbl} a
+                            LEFT JOIN {sentiment_sources_tbl} s
+                            ON a.source_id = s.content_id;
     '''
     
     try:
