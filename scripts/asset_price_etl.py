@@ -3,7 +3,10 @@ import psycopg2
 from psycopg2.extras import execute_values
 import pandas as pd
 from datetime import datetime
-from curl_cffi import requests
+from dotenv import load_dotenv
+import os
+import requests
+from io import StringIO
 
 from db import get_db_params
 
@@ -18,7 +21,9 @@ def get_tickers():
     assets_tbl = params['assets']
     db_conn_params = params['db_conn']
 
-    select_query = f'SELECT ticker FROM {assets_tbl}'
+    select_query = f'''SELECT ticker FROM {assets_tbl}
+                        WHERE alphavantage_code IS NOT NULL --#!TODO rethink
+                    '''
 
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -53,19 +58,24 @@ def extract_asset_price_data(tickers, period='1d'):
 
     all_data = []
 
-    session = requests.Session(impersonate='chrome') #Bypass yfinance block
+    #session = requests.Session(impersonate='chrome') #Bypass yfinance block
+
+    load_dotenv()
+    api_key = os.getenv('ALPHAVANTAGE_API_KEY')
 
     for ticker in tickers:
         print(f'Fetching data for {ticker}...')
-        stock = yf.Ticker(ticker, session=session)
-        hist = stock.history(period='5y')
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={ticker}&outputsize=full&datatype=csv&apikey={api_key}'
+        req = requests.get(url)
 
-        if hist.empty:
+        if req.status_code != 200:
+            print(f"Couldn't retrieve data for ticker {ticker}")
             continue
 
-        hist.reset_index(inplace=True)
-        hist['ticker'] = ticker
-        all_data.append(hist)
+        df = pd.read_csv(StringIO(req.text))
+        df.reset_index(inplace=True)
+        df['ticker'] = ticker
+        all_data.append(df)
 
     if not all_data:
         return pd.DataFrame()
@@ -81,7 +91,7 @@ def transform_data(df):
     print('Preparing data to save...')
 
     rows = [
-        (row['ticker'], row['Date'].date(), row['Open'], row['Close'], row['High'], row['Low'], row['Volume'])
+        (row['ticker'], row['timestamp'], row['open'], row['close'], row['high'], row['low'], row['volume'])
         for index, row in df.iterrows()
     ]
 

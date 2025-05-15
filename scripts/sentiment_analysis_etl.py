@@ -14,14 +14,14 @@ def get_sources():
 
     params =            get_db_params()
     sources_tbl =       params['sentiment_sources']
-    companies_tbl =     params['companies']
+    assets_tbl =        params['assets']
     db_conn_params =    params['db_conn']
 
     columns = ['s.content_id', 's.published_date', 's.title', 'c.name']
 
     select_query = f'''SELECT {", ".join(columns)}
                         FROM {sources_tbl} s
-                        LEFT JOIN {companies_tbl} c
+                        LEFT JOIN {assets_tbl} c
                         ON s.ticker = c.ticker;
                     '''
     #TODO filter by published_date

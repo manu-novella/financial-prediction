@@ -34,10 +34,12 @@ def build_org_ticker_dict():
     print('Extracting relevant companies from database...')
 
     params =            get_db_params()
-    companies_tbl =     params['companies']
+    assets_tbl =     params['assets']
     db_conn_params =    params['db_conn']
 
-    select_query = f'SELECT name, pseudonym, ticker FROM {companies_tbl}'
+    select_query = f'''SELECT name, pseudonym, ticker FROM {assets_tbl}
+                        WHERE alphavantage_code IS NOT NULL --#!TODO rethink
+                    '''
 
     try:
         with psycopg2.connect(**db_conn_params) as conn:
