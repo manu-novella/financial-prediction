@@ -14,7 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from db import get_db_params
 
 
-def load_feature_matrix():
+def load_feature_matrix() -> pd.DataFrame:
     '''Extract precomputed feature matrix from DB.'''
 
     print('Extracting feature matrix from database...')
@@ -26,7 +26,7 @@ def load_feature_matrix():
 
     columns_of_prices = ['p.open', 'p.close', 'p.high', 'p.low', 'p.volume']
     columns_of_matrix = ['m.ticker', 'm.date', 'm.sma_10', 'm.sma_20', 'm.ema_10', 'm.ema_20', 'm.rsi_14',
-                      'm.daily_return', 'm.volume_sma_10', 'm.sentiment_score', 'm.next_day_up'
+                         'm.daily_return', 'm.volume_sma_10', 'm.sentiment_score', 'm.next_day_up'
     ]
 
     select_query = f'''SELECT {', '.join(columns_of_prices + columns_of_matrix)}
@@ -34,7 +34,7 @@ def load_feature_matrix():
                         LEFT JOIN {assets_price_tbl} p
                         ON m.ticker = p.ticker
                         AND m.date = p.date
-                        WHERE m.ticker = 'SPY' --#!remove later
+                        WHERE m.ticker = 'SPY'
                         ORDER BY ticker, date;
     '''
 
@@ -52,7 +52,7 @@ def load_feature_matrix():
     return matrix
 
 
-def get_train_test_split(matrix, sequence_length=10):
+def get_train_test_split(matrix: pd.DataFrame, sequence_length: int =10) -> tuple:
     '''Create sequences and splits into train/val/test sets.'''
 
     print('Computing train/test split...')
@@ -83,7 +83,7 @@ def get_train_test_split(matrix, sequence_length=10):
     return X_train.astype(np.float64), X_val.astype(np.float64), X_test.astype(np.float64), y_train, y_val, y_test#, scaler
 
 
-def create_sequences(group, features, sequence_length=10):
+def create_sequences(group: object, features: list, sequence_length: int =10) -> tuple:
     '''Break down the matrix in time-series sequences and return inputs and class.'''
 
     X, y = [], []
@@ -97,7 +97,7 @@ def create_sequences(group, features, sequence_length=10):
     return np.array(X), np.array(y)
 
 
-def rolling_window_split(X, y, train_ratio=0.7, val_ratio=0.15):
+def rolling_window_split(X: np.ndarray, y: np.ndarray, train_ratio: float =0.7, val_ratio: float =0.15) -> tuple:
     '''Split X and y into train, validation, and test using time-series order.'''
 
     n = len(X)
@@ -116,8 +116,8 @@ def rolling_window_split(X, y, train_ratio=0.7, val_ratio=0.15):
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 
-def build_LSTM(sequence_length, num_features):
-    ''''''
+def build_LSTM(sequence_length: int, num_features: int) -> object:
+    '''Define and build neural network.'''
 
     print('Setting up LSTM model...')
 
@@ -140,7 +140,7 @@ def build_LSTM(sequence_length, num_features):
     return model
 
 
-def train_model(model, X_train, y_train, X_val, y_val):
+def train_model(model: object, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray) -> object:
     '''Train LSTM network on matrix data.'''
 
     print('Training model...')
@@ -160,7 +160,7 @@ def train_model(model, X_train, y_train, X_val, y_val):
     return model
 
 
-def evaluate_model(model, X_val, y_val, X_test, y_test):
+def evaluate_model(model: object, X_val: np.ndarray, y_val: np.ndarray, X_test: np.ndarray, y_test: np.ndarray):
     '''Evaluate model performance.'''
 
     #Assess performance with validation set

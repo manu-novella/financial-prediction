@@ -7,7 +7,7 @@ from datetime import datetime
 from db import get_db_params
 
 
-def get_asset_data():
+def get_asset_data() -> pd.DataFrame:
     '''Retrieve asset trading data from DB.'''
 
     print('Extracting asset data from database...')
@@ -18,7 +18,10 @@ def get_asset_data():
 
     columns = ['price_id', 'ticker', 'date', 'open', 'close', 'high', 'low', 'volume']
 
-    select_query = f'''SELECT {", ".join(columns)} FROM {asset_price_tbl};'''
+    select_query = f'''SELECT {", ".join(columns)}
+                        FROM {asset_price_tbl}
+                        WHERE ticker = 'SPY'
+                    '''
     
     try:
         with psycopg2.connect(**db_conn_params) as conn:
@@ -34,7 +37,7 @@ def get_asset_data():
     return asset_prices_df
 
 
-def compute_ta_metrics(asset_df, start_time):
+def compute_ta_metrics(asset_df: pd.DataFrame, start_time: datetime) -> pd.DataFrame:
     '''Compute technical analysis metrics on past data.'''
 
     print('Computing technical analysis metrics...')
@@ -73,7 +76,7 @@ def compute_ta_metrics(asset_df, start_time):
     return metrics_df
 
 
-def transform_data(df):
+def transform_data(df: pd.DataFrame) -> list:
     '''Transform raw DataFrame into list of tuples for insertion.'''
 
     print('Preparing data to save...')
@@ -90,7 +93,7 @@ def transform_data(df):
     return rows
 
 
-def store_results(rows):
+def store_results(rows: list):
     '''Insert rows into the database using bulk insert.'''
 
     if not rows:

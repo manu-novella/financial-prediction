@@ -7,7 +7,7 @@ from datetime import datetime
 from db import get_db_params
 
 
-def get_sources():
+def get_sources() -> pd.DataFrame:
     '''Retrieve text sources from DB.'''
 
     print('Extracting sources from database...')
@@ -41,7 +41,7 @@ def get_sources():
     return sources_df
 
 
-def analyze_sentiment(analysis_df, analysis_timpestamp):
+def analyze_sentiment(analysis_df: pd.DataFrame, analysis_timpestamp: datetime) -> pd.DataFrame:
     '''Analyze the sentiment of each text referring to an asset.'''
     #TODO analyze based on each company, as there may be more than one in the same text
 
@@ -62,15 +62,15 @@ def analyze_sentiment(analysis_df, analysis_timpestamp):
                        for result in results]
     score_confidence = [result['score'] for result in results]
 
-    analysis_df['sentiment_score'] =    sentiment_score
-    analysis_df['score_confidence'] =   score_confidence
-    analysis_df['model_name'] =         model
-    analysis_df['analyzed_at'] =        analysis_timpestamp
+    analysis_df['sentiment_score']      = sentiment_score
+    analysis_df['score_confidence']     = score_confidence
+    analysis_df['model_name']           = model
+    analysis_df['analyzed_at']          = analysis_timpestamp
 
     return analysis_df
 
 
-def transform_data(df):
+def transform_data(df: pd.DataFrame) -> list:
     '''Transform raw DataFrame into list of tuples for insertion.'''
 
     print('Preparing data to save...')
@@ -83,7 +83,7 @@ def transform_data(df):
     return rows
 
 
-def store_results(rows):
+def store_results(rows: list):
     '''Insert rows into the database using bulk insert.'''
 
     if not rows:
@@ -96,6 +96,7 @@ def store_results(rows):
     sentiment_analysis_tbl =    params['sentiment_analysis']
     db_conn_params =            params['db_conn']
 
+    #No 'ON CONFLICT' clause as later results may be better if model is improved
     insert_query = f'''
                     INSERT INTO {sentiment_analysis_tbl} (source_id, sentiment_score, score_confidence, model_name, analyzed_at)
                     VALUES %s;

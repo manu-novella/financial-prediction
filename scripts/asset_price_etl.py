@@ -1,4 +1,3 @@
-import yfinance as yf
 import psycopg2
 from psycopg2.extras import execute_values
 import pandas as pd
@@ -12,7 +11,7 @@ from db import get_db_params
 
 
 
-def get_tickers():
+def get_tickers() -> list:
     '''Read from DB assets to extract.'''
 
     print('Reading assets whose data extract...')
@@ -21,8 +20,8 @@ def get_tickers():
     assets_tbl = params['assets']
     db_conn_params = params['db_conn']
 
-    select_query = f'''SELECT ticker FROM {assets_tbl}
-                        WHERE alphavantage_code IS NOT NULL --#!TODO rethink
+    select_query = f'''SELECT alphavantage_code FROM {assets_tbl}
+                        WHERE ticker = 'SPY'
                     '''
 
     try:
@@ -51,14 +50,12 @@ def get_extraction_period(): #Must return None if same-day data already extracte
     return period
 
 
-def extract_asset_price_data(tickers, period='1d'):
+def extract_asset_price_data(tickers: list, period='1d') -> pd.DataFrame:
     '''Download stock data for multiple tickers.'''
 
     print('Downloading asset prices...')
 
     all_data = []
-
-    #session = requests.Session(impersonate='chrome') #Bypass yfinance block
 
     load_dotenv()
     api_key = os.getenv('ALPHAVANTAGE_API_KEY')
@@ -85,7 +82,7 @@ def extract_asset_price_data(tickers, period='1d'):
     return combined_df
 
 
-def transform_data(df):
+def transform_data(df: pd.DataFrame) -> list:
     '''Transform raw DataFrame into list of tuples for insertion.'''
 
     print('Preparing data to save...')
@@ -98,7 +95,7 @@ def transform_data(df):
     return rows
 
 
-def load_data(rows):
+def load_data(rows: list):
     '''Insert rows into the database using bulk insert.'''
 
     if not rows:

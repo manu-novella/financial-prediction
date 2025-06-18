@@ -6,7 +6,7 @@ from datetime import datetime
 from db import get_db_params
 
 
-def get_data():
+def get_data() -> dict:
     '''Retrieve prices, technical analysis metrics and sentiment data.'''
 
     print('Extracting prices, metrics and sentiment data from database...')
@@ -27,12 +27,18 @@ def get_data():
                         FROM {asset_price_tbl} a
                         LEFT JOIN {technical_analysis_tbl} t
                         ON a.price_id = t.asset_price_id
-                        WHERE t.asset_price_id IS NOT NULL; --technical metrics have been computed
+                        WHERE a.ticker = 'SPY'
+                        AND t.asset_price_id IS NOT NULL; --technical metrics have been computed
     '''
     sentiment_query = f'''SELECT {", ".join(sentiment_columns)}
                             FROM {sentiment_analysis_tbl} a
                             LEFT JOIN {sentiment_sources_tbl} s
-                            ON a.source_id = s.content_id;
+                            ON a.source_id = s.content_id
+                            WHERE a.analyzed_at = (
+                                SELECT MAX(analyzed_at)
+                                FROM analytics.sentiment_analysis
+                            )
+                            AND s.ticker = 'SPY';
     '''
     
     try:
@@ -58,7 +64,7 @@ def get_data():
     return joined_data
 
 
-def compute_final_matrix(data):
+def compute_final_matrix(data: dict) -> pd.DataFrame:
     '''Compute aggregated sentiment score along with target columns for model training.'''
 
     print('Computing final matrix...')
@@ -68,9 +74,6 @@ def compute_final_matrix(data):
 
     #Remove rows where the sentiment analysis confidence is not high enough
     sentiments_df = sentiments_df[sentiments_df['a.score_confidence'] >= 0.8]
-
-    #Remove duplicates on ticker and date (sources may have been analyzed sentiment-wise more than once)
-    sentiments_df = sentiments_df.drop_duplicates(subset=['s.ticker', 's.published_date'], keep='first')
 
     #Compute the average sentiment score
     sentiments_agg = sentiments_df.groupby(['s.ticker', 's.published_date']).agg(
@@ -102,7 +105,7 @@ def compute_final_matrix(data):
     return prices_df
 
 
-def transform_data(df):
+def transform_data(df: pd.DataFrame) -> list:
     '''Transform raw DataFrame into list of tuples for insertion.'''
 
     print('Preparing data to save...')
@@ -118,7 +121,7 @@ def transform_data(df):
     return rows
 
 
-def store_results(rows):
+def store_results(rows: list):
     '''Insert rows into the database using bulk insert.'''
 
     if not rows:

@@ -6,11 +6,12 @@ import spacy
 import pandas as pd
 import re
 from rapidfuzz import process, fuzz
+from collections.abc import KeysView
 
 from db import get_db_params
 
 
-def fetch_rss_news(url):
+def fetch_rss_news(url: str) -> list:
     '''Fetch news articles from an RSS feed.'''
 
     print('Fetching RSS news...')
@@ -28,17 +29,17 @@ def fetch_rss_news(url):
     return articles
 
 
-def build_org_ticker_dict():
+def build_org_ticker_dict() -> dict:
     '''Read companies data from DB and build a dictionary to map their tickers.'''
 
     print('Extracting relevant companies from database...')
 
     params =            get_db_params()
-    assets_tbl =     params['assets']
+    assets_tbl =        params['assets']
     db_conn_params =    params['db_conn']
 
     select_query = f'''SELECT name, pseudonym, ticker FROM {assets_tbl}
-                        WHERE alphavantage_code IS NOT NULL --#!TODO rethink
+                        WHERE ticker = 'SPY'
                     '''
 
     try:
@@ -60,12 +61,13 @@ def build_org_ticker_dict():
     return org_to_ticker
 
 
-def clean_org_name(name):
+def clean_org_name(name: str) -> str:
     '''Strip non-specifying words from company name.'''
+
     return re.sub(r'\b(Inc|Incorporated|Corp|Corporation|Ltd|LLC|Motors)\b|\.', '', name, flags=re.IGNORECASE).strip()
 
 
-def extract_orgs(text, relevant_orgs, nlp_model):
+def extract_orgs(text: str, relevant_orgs: KeysView, nlp_model: object) -> list:
     '''Helper function to extract organization names from scraped news.'''
     
     #Use of spaCy pretrained model for more potential finds
@@ -79,7 +81,7 @@ def extract_orgs(text, relevant_orgs, nlp_model):
     return orgs
 
 
-def fuzzy_match_org(org, relevant_orgs, threshold=85):
+def fuzzy_match_org(org: str, relevant_orgs: KeysView, threshold: int =85) -> str:
     '''Match org string scraped from text with set of orgs in DB.'''
     
     match, score, _ = process.extractOne(org.title(), relevant_orgs, scorer=fuzz.token_sort_ratio, processor=str.lower)
@@ -87,7 +89,7 @@ def fuzzy_match_org(org, relevant_orgs, threshold=85):
         return match
 
 
-def build_asset_mentions_df(articles, ticker_dict, nlp_model, url, scraping_timestamp):
+def build_asset_mentions_df(articles: list, ticker_dict: dict, nlp_model: object, url: str, scraping_timestamp: datetime) -> pd.DataFrame:
     '''Iterate the scraped articles and return data about the relevant mentioned assets.'''
 
     print('Extracting mentions of assets in news...')
@@ -106,7 +108,7 @@ def build_asset_mentions_df(articles, ticker_dict, nlp_model, url, scraping_time
             match = fuzzy_match_org(org, ticker_dict.keys())
             if match is not None:
                 new_row = ['Yahoo Finance', #TODO parameterize
-                           datetime.fromisoformat(article['published']).date(),
+                           datetime.strptime(article['published'], '%a, %d %b %Y %H:%M:%S %z').date(),
                            title,
                            body, #TODO extract true body via link
                            url,
@@ -118,7 +120,7 @@ def build_asset_mentions_df(articles, ticker_dict, nlp_model, url, scraping_time
     return sentiment_sources
 
 
-def transform_data(df):
+def transform_data(df: pd.DataFrame) -> list:
     '''Transform raw DataFrame into list of tuples for insertion.'''
 
     print('Preparing data to save...')
@@ -131,7 +133,7 @@ def transform_data(df):
     return rows
 
 
-def load_data(rows):
+def load_data(rows: list):
     '''Insert rows into the database using bulk insert.'''
 
     if not rows:
@@ -168,7 +170,7 @@ def run_etl():
     print(f'Starting News Sentiment ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
 
     #Extract
-    rss_url = 'https://finance.yahoo.com/rss/topstories'
+    rss_url = 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY&region=US&lang=en-US'
     articles = fetch_rss_news(rss_url)
 
     #Transform
