@@ -7,11 +7,11 @@ def get_db_params():
     load_dotenv()
 
     DB_CONN_PARAMS = {
-        'host':     os.getenv('DB_HOST'),
-        'port':     os.getenv('DB_PORT'),
-        'database': os.getenv('DB_NAME'),
-        'user':     os.getenv('DB_USER'),
-        'password': os.getenv('DB_PASSWORD')
+        'host':     os.getenv('FINANCIAL_DB_HOST', 'localhost'), #By default, localhost - if not specified by env var in Docker
+        'port':     os.getenv('FINANCIAL_DB_PORT'),
+        'database': os.getenv('FINANCIAL_DB_NAME'),
+        'user':     os.getenv('FINANCIAL_DB_USER'),
+        'password': os.getenv('FINANCIAL_DB_PASSWORD')
     }
 
     params = {'db_conn':            DB_CONN_PARAMS,
