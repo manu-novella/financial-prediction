@@ -126,9 +126,9 @@ def store_results(rows: list):
     print(f'Insertion successful.')
 
 
-def run_etl():
+def run_technical_analysis_etl():
     start_time = datetime.now()
-    print(f'Starting Technical Analysis ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'Starting Technical Analysis ETL at {start_time.strftime("%Y-%m-%d %H:%M:%S")}')
 
     #Extract
     asset_df = get_asset_data()
@@ -140,8 +140,8 @@ def run_etl():
     #Load
     store_results(rows)
 
-    print(f'ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'ETL process finished at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 if __name__ == '__main__':
-    run_etl()
+    run_technical_analysis_etl()

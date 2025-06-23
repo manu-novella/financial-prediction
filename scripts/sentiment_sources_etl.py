@@ -165,9 +165,9 @@ def load_data(rows: list):
     print(f'Insertion successful.')
 
 
-def run_etl():
+def run_sentiment_sources_etl():
     start_time = datetime.now()
-    print(f'Starting News Sentiment ETL at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'Starting News Sentiment ETL at {start_time.strftime("%Y-%m-%d %H:%M:%S")}')
 
     #Extract
     rss_url = 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY&region=US&lang=en-US'
@@ -182,8 +182,8 @@ def run_etl():
     #Load
     load_data(rows)
 
-    print(f'ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'ETL process finished at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 if __name__ == '__main__':
-    run_etl()
+    run_sentiment_sources_etl()

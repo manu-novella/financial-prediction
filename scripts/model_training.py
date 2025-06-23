@@ -207,9 +207,9 @@ def evaluate_model(model: object, X_val: np.ndarray, y_val: np.ndarray, X_test: 
     print('\nAccuracy on test set using best threshold for validation set: ', final_accuracy, '\n')
 
 
-def run_training():
+def run_model_training():
     start_time = datetime.now()
-    print(f'Starting training process at {start_time.strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'Starting training process at {start_time.strftime("%Y-%m-%d %H:%M:%S")}')
 
     SEQUENCE_LENGTH = 10
 
@@ -222,10 +222,10 @@ def run_training():
     evaluate_model(lstm, X_val, y_val, X_test, y_test)
 
     end_time = datetime.now()
-    print(f'Model Training finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'Model Training finished at {end_time.strftime("%Y-%m-%d %H:%M:%S")}')
     elapsed_time = end_time - start_time
     print(f'Elapsed time: {elapsed_time.seconds // 60} minutes and {elapsed_time.seconds % 60} seconds')
 
 
 if __name__ == '__main__':
-    run_training()
+    run_model_training()

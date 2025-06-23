@@ -125,8 +125,8 @@ def load_data(rows: list):
     print(f'Insertion successful.')
 
 
-def run_etl():
-    print(f'Starting Asset Price ETL at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
+def run_asset_price_etl():
+    print(f'Starting Asset Price ETL at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
     #Extract
     period = get_extraction_period()
@@ -148,9 +148,9 @@ def run_etl():
     #Load
     load_data(rows)
 
-    print(f'ETL process finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
+    print(f'ETL process finished at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 
 if __name__ == '__main__':
-    run_etl()
+    run_asset_price_etl()

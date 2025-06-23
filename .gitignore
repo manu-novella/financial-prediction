@@ -3,3 +3,5 @@ notebooks
 .env
 **/__pycache__
 TODO.txt
+config/*
+logs/*
