@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import psycopg2
 import numpy as np
@@ -145,7 +146,7 @@ def train_model(model: object, X_train: np.ndarray, y_train: np.ndarray, X_val: 
 
     print('Training model...')
 
-    epochs = 300
+    epochs = 3#00
     early_stopping_callback = EarlyStopping(patience=epochs / 3, restore_best_weights=True)
 
     model.fit(X_train, y_train, 
@@ -207,6 +208,18 @@ def evaluate_model(model: object, X_val: np.ndarray, y_val: np.ndarray, X_test: 
     print('\nAccuracy on test set using best threshold for validation set: ', final_accuracy, '\n')
 
 
+def save_model(model: object):
+    '''Save ML model so it can be used later.'''
+
+    print('Saving model...')
+
+    scripts_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(scripts_dir)
+    model_dir = os.path.join(parent_dir, 'models')
+
+    model.save(model_dir + '/lstm_model.keras')
+
+
 def run_model_training():
     start_time = datetime.now()
     print(f'Starting training process at {start_time.strftime("%Y-%m-%d %H:%M:%S")}')
@@ -220,6 +233,8 @@ def run_model_training():
     lstm = build_LSTM(sequence_length=SEQUENCE_LENGTH, num_features=num_features)
     lstm = train_model(lstm, X_train, y_train, X_val, y_val)
     evaluate_model(lstm, X_val, y_val, X_test, y_test)
+    
+    save_model(lstm)
 
     end_time = datetime.now()
     print(f'Model Training finished at {end_time.strftime("%Y-%m-%d %H:%M:%S")}')

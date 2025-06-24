@@ -5,3 +5,5 @@ notebooks
 TODO.txt
 config/*
 logs/*
+mlruns/
+models/*
