@@ -17,3 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m spacy download en_core_web_sm
 
 COPY scripts /opt/airflow/scripts
+
+COPY models /opt/airflow/models
+
+USER root
+
+RUN chown -R airflow: /opt/airflow/models
+
+USER airflow

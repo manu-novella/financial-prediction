@@ -24,7 +24,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     catchup=False,
 ) as dag:
-    
+        
     asset_price_etl = PythonOperator(
         task_id='asset_price_etl',
         python_callable=run_script,
@@ -64,7 +64,7 @@ with DAG(
             'script_name': 'feature_matrix_build.py'
         }
     )
-
+    
     model_training = PythonOperator(
         task_id='model_training',
         python_callable=run_script,
@@ -73,7 +73,7 @@ with DAG(
         }
     )
 
-
+    
     asset_price_etl >> technical_analysis_etl
     sentiment_sources_etl >> sentiment_analysis_etl
     [technical_analysis_etl, sentiment_analysis_etl] >> feature_matrix_build >> model_training
