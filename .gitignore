@@ -3,7 +3,9 @@ notebooks
 .env
 **/__pycache__
 TODO.txt
-config/*
+config/airflow.cfg
 logs/*
 mlruns/
 models/*
+!logs/.gitkeep
+!models/.gitkeep

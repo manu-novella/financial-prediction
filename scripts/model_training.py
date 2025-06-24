@@ -146,7 +146,7 @@ def train_model(model: object, X_train: np.ndarray, y_train: np.ndarray, X_val: 
 
     print('Training model...')
 
-    epochs = 3#00
+    epochs = 300
     early_stopping_callback = EarlyStopping(patience=epochs / 3, restore_best_weights=True)
 
     model.fit(X_train, y_train, 
